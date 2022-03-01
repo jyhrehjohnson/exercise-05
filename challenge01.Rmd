@@ -13,9 +13,7 @@ library(tidyverse)
 f <- "https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/IMDB-movies.csv"
 d <- read_csv(f, col_names = TRUE)
 ```
-.
-.
-.
+
 2. Use a one-line statement to filter the dataset to include just movies from 1920 to 1979 and movies that are between 1 and 3 hours long (runtimeMinutes >= 60 and runtimeMinutes <= 180), and add a new column that codes the startYear into a new variable, decade (“20s,” “30s,” …“70s”). If you do this correctly, there should be 5651 movies remaining in the dataset.
 ```{r}
 d <- d %>% filter(startYear %in% 1920:1979 & runtimeMinutes %in% 60:180)%>%
@@ -29,9 +27,7 @@ mutate(decade = case_when(
 ))
 head(d)
 ```
-.
-.
-.
+
 3. Use {ggplot2} (which is part of {tidyverse}) to plot histograms of the distribution of runtimeMinutes for each decade.
 ```{r}
 library(dplyr)
@@ -45,9 +41,7 @@ p <- ggplot(data = d, aes(x = runtimeMinutes)) +
                 facet_wrap(~decade, ncol = 4) #create ggplot
 p #print ggplot 
 ```
-.
-.
-.
+
 4. Use a one-line statement to calculate the population mean and population standard deviation in runtimeMinutes for each decade and save the results in a new dataframe called results.
 ```{r}
 results <- d %>% group_by(decade)%>%
@@ -56,11 +50,9 @@ results <- d %>% group_by(decade)%>%
     p_sd = sd(runtimeMinutes, na.rm=TRUE),
     p_se = p_sd/sqrt(100) #not sure if I did this right? should it be by itself
   )
-print(results) #population mean, standard deviation, & standard error
+results #population mean, standard deviation, & standard error
 ```
-.
-.
-.
+
 5. Draw a single sample of 100 movies, without replacement, from each decade and calculate the single sample mean and single sample standard deviation in runtimeMinutes for each decades. Recall that your single sample mean for each decade is an estimate of the population mean for each decade. Calculate for each decade the standard error around your estimate of the population mean runtimeMinutes based on the standard deviation and sample size (n=100 movies) of your single sample.
 ```{r}
 x <- group_by(d, decade)%>%
@@ -69,24 +61,20 @@ x <- group_by(d, decade)%>%
     samp_mean = mean(runtimeMinutes, na.rm = TRUE), 
     samp_sd = sd(runtimeMinutes, na.rm = TRUE)
     ) #pull single sample from 100 movies for each decade
-print(x)
+x
 ```
-.
-.
-.
+
 6. Compare these estimates to the actual population mean runtimeMinutes for each decade and to the calculated SE in the population mean for samples of size 100 based on the population standard deviation for each decade.
 ```{r}
 comparison <- left_join(x, results, by = "decade") #After our discussion on Friday, I decided to use the left_join function
-print(comparison) 
+comparison 
 
 #comp_estimates1 <- merge(x, results, by="decade") <- this also works
 #print(comp_estimates)
 ```
-.
-.
-.
+
 7. Generate a sampling distribution of mean runtimeMinutes for each decade by [a] drawing 1000 samples of 100 movies from each decade and, for each sample, [b] calculating the mean runtimeMinutes and the standard deviation in runtimeMinutes for each decade. 
-.
+
 [a] Generate a sampling distribution of mean runtimeMinutes for each decade
 ```{r}
 reps = 1000 #set reps to 1000
@@ -100,21 +88,27 @@ samp_dist <- do(reps) * sample_n(group_by(d, decade),
                         sd = sd(~runtimeMinutes, na.rm=TRUE)) 
 #generate sample distribution
 ```
-.
-.
-.
+
 8. Then, calculate the MEAN and the STANDARD DEVIATION of the sampling distribution of sample means for each decade (the former should be a very good estimate of the population mean, while the latter is another estimate of the standard error in our estimate of the population mean for a particular sample size) and plot a histogram of the sampling distribution for each decade.
-.
+
 [a] Calculate the mean and standard deviation of the sampling distribution of sample means for each decade
 ```{r}
-s <- samp_dist_mean = mean(~mean, data = samp_dist), samp_dist_sd = sd(samp_dist)
-#use sdpop?? - to find standard deviation
-#mean(~mean, data=samp_dist) 
-#calculate mean
-#calculate standard deviation
+#use aggregate() from Module 9
+samp_distDecMeans <- aggregate(mean~decade, mean, data = samp_dist)
+samp_distDecMeans
+
+samp_distDecSDs <- aggregate(samp_dist$mean, by = list(samp_dist$decade), FUN = sd)
+
+#fix the samp_distDecSDs to remove "Group.1" and "x" and replace them with "decade" & "sd"
+names(samp_distDecSDs)[names(samp_distDecSDs) == "Group.1"] <- "decade"
+names(samp_distDecSDs)[names(samp_distDecSDs) == "x"] <- "sd"
+samp_distDecSDs
+
+merge_sampDist <- left_join(samp_distDecMeans,samp_distDecSDs, by = "decade")
+
+merge_sampDist
 ```
-.
-.
+
 [b] Plot a histogram of the sampling distribution for each decade
 ```{r}
 #p1 <- ggplot(data = samp_dist, aes("mean_runtimeMinutes")) + 
@@ -127,9 +121,7 @@ s <- samp_dist_mean = mean(~mean, data = samp_dist), samp_dist_sd = sd(samp_dist
 ```
 What shape does it have?
 -All histograms are in normal distribution
-.
-.
-.
+
 9. Finally, compare the standard error in runtimeMinutes for samples of size 100 from each decade [1] as estimated from your first sample of 100 movies, [2] as calculated from the known population standard deviations for each decade, and [3] as estimated from the sampling distribution of sample means for each decade.
 ```{r}
 comparison2 <- left_join(comparison, s, by = "decade") %>%
