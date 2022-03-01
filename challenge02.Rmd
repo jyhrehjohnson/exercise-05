@@ -12,6 +12,7 @@ library(tidyverse)
 f1 <- "https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/zombies.csv"
 z <- read_csv(f1, col_names = TRUE)
 head(z)
+#can we use z by itself? or do we need to select for height, weight, age, zombies killed and YOE??
 ```
 
 2. Calculate the population mean and standard deviation for each quantitative random variable in the dataset (height, weight, age, number of zombies killed, and years of education).
@@ -32,31 +33,31 @@ library(cowplot)
 #gender x height
 zb1 <- ggplot(data = z, aes(x = gender, y = height))
 zb1 <- zb1 + geom_boxplot(na.rm = TRUE)
-zb1 <- zb1 + theme(axis.text.x=element_text(angle = 90))
+zb1 <- zb1 + theme(axis.text.x = element_text(angle = 90))
 zb1 <- zb1 + xlab("gender") + ylab("height")
 
 #gender x weight
 zb2 <- ggplot(data = z, aes(x = gender, y = weight))
 zb2 <- zb2 + geom_boxplot(na.rm = TRUE)
-zb2 <- zb2 + theme(axis.text.x=element_text(angle = 90))
+zb2 <- zb2 + theme(axis.text.x = element_text(angle = 90))
 zb2 <- zb2 + xlab("gender") + ylab("weight")
 
 #gender x age
 zb3 <- ggplot(data = z, aes(x = gender, y = age))
 zb3 <- zb3 + geom_boxplot(na.rm = TRUE)
-zb3 <- zb3 + theme(axis.text.x=element_text(angle= 90))
+zb3 <- zb3 + theme(axis.text.x = element_text(angle= 90))
 zb3 <- zb3 + xlab("gender") + ylab("age")
 
 #gender x zombies_killed
 zb4 <- ggplot(data = z, aes(x = gender, y = zombies_killed))
 zb4 <- zb4 + geom_boxplot(na.rm = TRUE)
-zb4 <- zb4 + theme(axis.text.x=element_text(angle = 90))
+zb4 <- zb4 + theme(axis.text.x = element_text(angle = 90))
 zb4 <- zb4 + xlab("gender") + ylab("zombies_killed")
 
 #gender x years_of_education
 zb5 <- ggplot(data = z, aes(x = gender, y = years_of_education))
 zb5 <- zb5 + geom_boxplot(na.rm = TRUE)
-zb5 <- zb5 + theme(axis.text.x=element_text(angle = 90))
+zb5 <- zb5 + theme(axis.text.x = element_text(angle = 90))
 zb5 <- zb5 + xlab("gender") + ylab("years_of_education")
 
 plot_grid(zb1, zb2, zb3, zb4, zb5, label_size = 12, nrow =2)
@@ -126,7 +127,7 @@ survivors50 <- tibble(variable = character(), s_mean = numeric(), s_sd = numeric
 for (i in seq_along(y)) {
   s_mean <- mean(y[[i]])
   s_sd <- sd(y[[i]])
-  s_se <- sd / sqrt(50) #this throws off knitting
+  s_se <- s_sd / sqrt(50) #this throws off knitting
   lower_ci <- s_mean + qnorm(0.05 / 2) * s_se #calculate lower limit
   upper_ci <- s_mean - qnorm(0.05 / 2) * s_se #calculate upper limit
   survivors50 <- add_row(survivors50, variable = (colnames(y)[i]), s_mean = s_mean, s_sd = s_sd, s_se = s_se, lower_ci = lower_ci, upper_ci = upper_ci) #fill in tibble
@@ -135,36 +136,33 @@ for (i in seq_along(y)) {
 survivors50
 ```
 
-7. Then draw another 199 random samples of 50 zombie apocalypse survivors out and calculate the mean for each of the these samples. Together with the first sample you drew out, you now have a set of 100 means for each variable (each based on 50 observations), which constitutes a sampling distribution for each variable. [is 199 a typo?]
+7. Then draw another 199 random samples of 50 zombie apocalypse survivors out and calculate the mean for each of the these samples. Together with the first sample you drew out, you now have a set of 100 means for each variable (each based on 50 observations), which constitutes a sampling distribution for each variable.
 ```{r}
+library(mosaic)
 set.seed(1) #set to randomly pull sample
 a <- 199
 #create a new tibble
 survivors199 <- tibble(
-  z_seq = c(1:199),#vector of 1-199
+  z_seq = c(1:a),
   height_mean = do(a) * mean(~height, data = sample_n(z, size = n1, replace = FALSE)),
-  
   weight_mean = do(a) * mean(~weight, data = sample_n(z, size = n1, replace = FALSE)),
-  
-  age_mean = do(a) * mean(~age, data = sample_n(z, size = n1, replace = FALSE)),
-  
+  a_mean = do(a) * mean(~age, data = sample_n(z, size = n1, replace = FALSE)),
   zk_mean = do(a) * mean(~zombies_killed, data = sample_n(z, size = n1, replace = FALSE)),
-  
-  ed_mean = do(a) * mean(~years_of_education, data = sample_n(z, size = n1, replace = FALSE)),
-)
+  ed_mean = do(a) * mean(~years_of_education, data = sample_n(z, size = n1, replace = FALSE))
+  )
 
 survivors199
 
 #{originally tried to execute the code below}
 #set.seed(1)
 
-#survivors99 <- tibble(
-  #z_seq = c(1:99),
-  #height_mean = do(99) * mean(z$height, na.rm = TRUE),
-  #weight_mean = do(99) * mean(z$weight, na.rm = TRUE),
-  #age_mean = do(99) * mean(z$age, na.rm = TRUE),
-  #zombieK_mean = do(99) * mean(z$zombies_killed, na.rm = TRUE),
-  #ed_mean = do(99) * mean(z$years_of_education, na.rm = TRUE)
+#survivors199 <- tibble(
+  #z_seq = c(1:199),
+  #height_mean = do(199) * mean(z$height, na.rm = TRUE),
+  #weight_mean = do(199) * mean(z$weight, na.rm = TRUE),
+  #age_mean = do(199) * mean(z$age, na.rm = TRUE),
+  #zombieK_mean = do(199) * mean(z$zombies_killed, na.rm = TRUE),
+  #ed_mean = do(199) * mean(z$years_of_education, na.rm = TRUE)
 #)
 
 #survivors99
@@ -174,26 +172,26 @@ What are the means and standard deviations of the sampling distribution for each
 -Means
 ```{r} 
 #Find the means from the survivors50 tibble, need to index where data is pulled from. Use code to tell each row and column[[x,y]]
-h_meanDist <- (mean(~mean, data = survivors199$height_mean) + survivors50[[1,2]]) #do we need to /2?
+h_meanDist <- (mean(~mean, data = survivors199$height_mean) + survivors50[[1,2]])/2 #do we need to /2?
 h_meanDist
 
-w_meanDist <- (mean(~mean, data = survivors199$weight_mean) + survivors50[[2,2]])#/2?
+w_meanDist <- (mean(~mean, data = survivors199$weight_mean) + survivors50[[2,2]])/2
 w_meanDist
 
-a_meanDist <- (mean(~mean, data = survivors199$age_mean) + survivors50[[3,2]])#/2?
+a_meanDist <- (mean(~mean, data = survivors199$a_mean) + survivors50[[3,2]])/2
 a_meanDist
 
-zk_meanDist<- (mean(~mean, data = survivors199$zk_mean) + survivors50[[4,2]])#/2?
+zk_meanDist<- (mean(~mean, data = survivors199$zk_mean) + survivors50[[4,2]])/2
 zk_meanDist
 
-ed_meanDist <- (mean(~mean, data = survivors199$ed_mean) + survivors50[[5,2]])#/2?
+ed_meanDist <- (mean(~mean, data = survivors199$ed_mean) + survivors50[[5,2]])/2
 ed_meanDist
 ```
 -Standard Deviations
 ```{r}
 h_meanSD <- sd(~mean, data = survivors199$height_mean)
 w_meanSD <- sd(~mean, data = survivors199$weight_mean)
-a_meanSD <- sd(~mean, data = survivors199$age_mean)
+a_meanSD <- sd(~mean, data = survivors199$a_mean)
 zk_meanSD <- sd(~mean, data = survivors199$zk_mean)
 ed_meanSD <- sd(~mean, data = survivors199$ed_mean)
 
@@ -259,7 +257,7 @@ histogram(~mean, data = survivors199$height_mean, main = "Sampling Distribution 
 
 histogram(~mean, data = survivors199$weight_mean, main = "Sampling Distribution (Weight Means)")
 
-histogram(~mean, data = survivors199$age_mean, main = "Sampling Distribution (Age Means)")
+histogram(~mean, data = survivors199$a_mean, main = "Sampling Distribution (Age Means)")
 
 histogram(~mean, data = survivors199$zk_mean, main = "Sampling Distribution (Means of Zombies Killed)")
 
